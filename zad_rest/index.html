@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager Integration</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Task Manager Integration</h1>
+        
+        <section class="content-section">
+            <h2>Google Calendar</h2>
+            
+            <div class="card">
+                <h3>Create Calendar Event</h3>
+                <form action="/calendar/events/" method="post">
+                    <label for="event-summary">Summary:</label>
+                    <input type="text" id="event-summary" name="summary" placeholder="Event summary">
+                    
+                    <label for="event-description">Description:</label>
+                    <textarea id="event-description" name="description" placeholder="Event description"></textarea>
+                    
+                    <label for="event-start">Start Time:</label>
+                    <input type="datetime-local" id="event-start" name="start_time">
+                    
+                    <label for="event-end">End Time:</label>
+                    <input type="datetime-local" id="event-end" name="end_time">
+                    
+                    <label for="event-location">Location:</label>
+                    <input type="text" id="event-location" name="location" placeholder="Event location">
+                    
+                    <button type="submit">Create Event</button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h3>List Calendar Events</h3>
+                <form action="/calendar/events/" method="get">
+                    <label for="max-results">Max Results:</label>
+                    <input type="number" id="max-results" name="max_results" value="10" min="1" max="100">
+                    
+                    <label for="time-min">From Date:</label>
+                    <input type="datetime-local" id="time-min" name="time_min">
+                    
+                    <button type="submit">List Events</button>
+                </form>
+                
+                <div id="events-result" class="result">
+                    <h4>Events:</h4>
+                    <pre id="events-data"></pre>
+                </div>
+            </div>
+        </section>
+        
+        <section class="content-section">
+            <h2>Todoist</h2>
+            
+            <div class="card">
+                <h3>Create Todoist Task</h3>
+                <form action="/todoist/tasks/" method="post">
+                    <label for="task-content">Content:</label>
+                    <input type="text" id="task-content" name="content" placeholder="Task content">
+                    
+                    <label for="task-description">Description:</label>
+                    <textarea id="task-description" name="description" placeholder="Task description"></textarea>
+                    
+                    <label for="task-due-date">Due Date:</label>
+                    <input type="date" id="task-due-date" name="due_date">
+                    
+                    <label for="task-priority">Priority (1-4):</label>
+                    <input type="number" id="task-priority" name="priority" min="1" max="4" value="1">
+                    
+                    <button type="submit">Create Task</button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h3>List Todoist Tasks</h3>
+                <form action="/todoist/tasks/" method="get">
+                    <button type="submit">List Tasks</button>
+                </form>
+                
+                <div id="tasks-result" class="result">
+                    <h4>Tasks:</h4>
+                    <pre id="tasks-data"></pre>
+                </div>
+            </div>
+        </section>
+        
+        <section class="content-section">
+            <h2>Sync Calendar to Todoist</h2>
+            <div class="card">
+                <p>Create Todoist tasks from your upcoming Google Calendar events.</p>
+                
+                <form action="/sync-calendar-to-todoist/" method="post">
+                    <label for="days-ahead">Days Ahead:</label>
+                    <input type="number" id="days-ahead" name="days_ahead" value="7" min="1" max="30">
+                    
+                    <button type="submit">Sync Calendar to Todoist</button>
+                </form>
+            </div>
+        </section>
+    </div>
+</body>
+</html>
