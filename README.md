@@ -21,7 +21,7 @@ This is a FastAPI application that integrates with Google Calendar and Todoist t
 
 ```bash
 git clone git@github.com:c-i-a-s-t-e-k/easyTaskManager.git
-cd easyTaskManager
+cd easyTaskManager935123
 ```
 
 ### 2. Install dependencies

@@ -129,31 +129,7 @@ async def create_calendar_event(
         start_time = datetime.fromisoformat(created_event["start"]["dateTime"].replace("Z", ""))
         end_time = datetime.fromisoformat(created_event["end"]["dateTime"].replace("Z", ""))
         
-        # Get the index.html content
-        html_file = Path(__file__).parent / "index.html"
-        html_content = html_file.read_text()
-        
-        # Create popup message with event details
-        event_details = f"""
-        <div id="popup" style="position:fixed; top:0; left:0; width:100%; height:100%; 
-                              background-color:rgba(0,0,0,0.7); display:flex; 
-                              justify-content:center; align-items:center; z-index:1000;">
-            <div style="background-color:white; padding:20px; border-radius:5px; max-width:500px;">
-                <h2>Event Created Successfully</h2>
-                <p><strong>Summary:</strong> {summary}</p>
-                <p><strong>Start:</strong> {start_time_dt.strftime('%Y-%m-%d %H:%M')}</p>
-                <p><strong>End:</strong> {end_time_dt.strftime('%Y-%m-%d %H:%M')}</p>
-                {"<p><strong>Description:</strong> " + description + "</p>" if description else ""}
-                {"<p><strong>Location:</strong> " + location + "</p>" if location else ""}
-                <button onclick="window.location.href='/'">Close</button>
-            </div>
-        </div>
-        """
-        
-        # Insert the popup before the closing body tag
-        modified_html = html_content.replace("</body>", f"{event_details}</body>")
-        
-        return HTMLResponse(content=modified_html, status_code=200)
+        return CalendarEvent(summary, description, start_time, end_time, location)
         
     except Exception as e:
         raise HTTPException(
@@ -210,31 +186,7 @@ async def list_calendar_events(
             )
             events.append(event)
         
-        # Get the index.html content
-        html_file = Path(__file__).parent / "index.html"
-        html_content = html_file.read_text()
-        
-        # Create events list HTML
-        events_html = "<ul style='list-style-type:none; padding:0;'>"
-        if events:
-            for event in events:
-                events_html += f"""
-                <li style='margin-bottom:10px; padding:10px; border:1px solid #ddd; border-radius:5px;'>
-                    <strong>{event.summary}</strong><br>
-                    Start: {event.start_time.strftime('%Y-%m-%d %H:%M')}<br>
-                    End: {event.end_time.strftime('%Y-%m-%d %H:%M')}<br>
-                    {f"Location: {event.location}<br>" if event.location else ""}
-                    {f"Description: {event.description}" if event.description else ""}
-                </li>
-                """
-        else:
-            events_html += "<li>No events found</li>"
-        events_html += "</ul>"
-        
-        # Update the events-data div with the events list
-        modified_html = html_content.replace('<pre id="events-data"></pre>', f'<div id="events-data">{events_html}</div>')
-        
-        return HTMLResponse(content=modified_html, status_code=200)
+        return events
         
     except Exception as e:  
         raise HTTPException(
@@ -275,37 +227,8 @@ async def create_todoist_task(
                 detail="Failed to create Todoist task"
             )
         
-        task_response = response.json()
-        
-        # Get the index.html content
-        html_file = Path(__file__).parent / "index.html"
-        html_content = html_file.read_text()
-        
-        # Format due date if present
-        due_date_formatted = ""
-        if due_date and due_date.strip():
-            due_date_formatted = f"<p><strong>Due Date:</strong> {due_date}</p>"
-        
-        # Create popup message with task details
-        popup_html = f"""
-        <div id="popup" style="position:fixed; top:0; left:0; width:100%; height:100%; 
-                              background-color:rgba(0,0,0,0.7); display:flex; 
-                              justify-content:center; align-items:center; z-index:1000;">
-            <div style="background-color:white; padding:20px; border-radius:5px; max-width:500px;">
-                <h2>Task Created Successfully</h2>
-                <p><strong>Content:</strong> {content}</p>
-                {f"<p><strong>Description:</strong> {description}</p>" if description else ""}
-                {due_date_formatted}
-                <p><strong>Priority:</strong> {priority}</p>
-                <button onclick="window.location.href='/'">Close</button>
-            </div>
-        </div>
-        """
-        
-        # Insert the popup before the closing body tag
-        modified_html = html_content.replace("</body>", f"{popup_html}</body>")
-        
-        return HTMLResponse(content=modified_html, status_code=200)
+         
+        return TodoistTask(content, description, due_date, priority)
         
     except Exception as e:
         raise HTTPException(
@@ -345,31 +268,7 @@ async def list_todoist_tasks(
             )
             tasks.append(task)
         
-        # Get the index.html content
-        html_file = Path(__file__).parent / "index.html"
-        html_content = html_file.read_text()
-        
-        # Create tasks list HTML
-        tasks_html = "<ul style='list-style-type:none; padding:0;'>"
-        if tasks:
-            for task in tasks:
-                priority_label = {1: "Low", 2: "Medium", 3: "High", 4: "Urgent"}.get(task.priority, "Low")
-                tasks_html += f"""
-                <li style='margin-bottom:10px; padding:10px; border:1px solid #ddd; border-radius:5px;'>
-                    <strong>{task.content}</strong><br>
-                    {f"Description: {task.description}<br>" if task.description else ""}
-                    {f"Due Date: {task.due_date.strftime('%Y-%m-%d')}<br>" if task.due_date else ""}
-                    Priority: {priority_label} ({task.priority})
-                </li>
-                """
-        else:
-            tasks_html += "<li>No tasks found</li>"
-        tasks_html += "</ul>"
-        
-        # Update the tasks-data div with the tasks list
-        modified_html = html_content.replace('<pre id="tasks-data"></pre>', f'<div id="tasks-data">{tasks_html}</div>')
-        
-        return HTMLResponse(content=modified_html, status_code=200)
+        return tasks
         
     except Exception as e:
         raise HTTPException(
@@ -423,46 +322,24 @@ async def sync_calendar_to_todoist(
             task_response = await todoist_client.post("tasks", json=task_data)
             
             if task_response.status_code == 200:
-                created_tasks.append(task_response.json())
+                task_json = task_response.json()
+                
+                # Convert the JSON response to a TodoistTask object
+                due_date = None
+                if "due" in task_json and task_json["due"]:
+                    due_str = task_json["due"].get("date")
+                    if due_str:
+                        due_date = datetime.strptime(due_str, "%Y-%m-%d")
+                
+                task = TodoistTask(
+                    content=task_json["content"],
+                    description=task_json.get("description", ""),
+                    due_date=due_date,
+                    priority=task_json.get("priority", 1)
+                )
+                created_tasks.append(task)
         
-        # Get the index.html content
-        html_file = Path(__file__).parent / "index.html"
-        html_content = html_file.read_text()
-        
-        # Create synced tasks list HTML
-        tasks_html = "<ul style='max-height:400px; overflow-y:auto;'>"
-        if created_tasks:
-            for task in created_tasks:
-                tasks_html += f"""
-                <li style='margin-bottom:10px; padding:10px; border:1px solid #ddd; border-radius:5px;'>
-                    <strong>{task.get('content', '')}</strong><br>
-                    {f"Description: {task.get('description', '')}<br>" if task.get('description') else ""}
-                    {f"Due Date: {task.get('due', {}).get('date', '')}" if task.get('due') else ""}
-                </li>
-                """
-        else:
-            tasks_html += "<li>No tasks created</li>"
-        tasks_html += "</ul>"
-        
-        # Create popup message with sync results
-        popup_html = f"""
-        <div id="popup" style="position:fixed; top:0; left:0; width:100%; height:100%; 
-                              background-color:rgba(0,0,0,0.7); display:flex; 
-                              justify-content:center; align-items:center; z-index:1000;">
-            <div style="background-color:white; padding:20px; border-radius:5px; max-width:600px; max-height:80%; overflow-y:auto;">
-                <h2>Calendar to Todoist Sync</h2>
-                <p>Successfully created {len(created_tasks)} tasks from calendar events</p>
-                <h3>Created Tasks:</h3>
-                {tasks_html}
-                <button onclick="window.location.href='/'">Close</button>
-            </div>
-        </div>
-        """
-        
-        # Insert the popup before the closing body tag
-        modified_html = html_content.replace("</body>", f"{popup_html}</body>")
-        
-        return HTMLResponse(content=modified_html, status_code=200)
+        return created_tasks
         
     except Exception as e:
         raise HTTPException(
