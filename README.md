@@ -74,12 +74,6 @@ TODOIST_TOKEN=your_todoist_api_token
 
 For the `GOOGLE_CREDENTIALS_JSON`, copy the entire content of the JSON key file you downloaded and paste it as a single line string.
 
-### 7. Create a static directory (optional)
-
-```bash
-mkdir -p zad_rest/static
-```
-
 ## Running the application
 
 ```bash
